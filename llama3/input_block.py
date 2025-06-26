@@ -5,6 +5,7 @@
 import torch
 from llama3 import device
 
+
 class InputBlock:
     def __init__(self):
         # load the Tiny Shakespeare dataset
@@ -34,7 +35,7 @@ class InputBlock:
     def decode(self, l):
         return ''.join([self.itos[i] for i in l])
 
-
+input_block = InputBlock()
     
 
 

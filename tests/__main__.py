@@ -1,5 +1,5 @@
-import tests.test_input_block
-
+import tests.tests
 if __name__ == "__main__":
-    tests.test_input_block.test_input_block()
+    tests.tests.test_input_block()
+    tests.tests.test_RMSNorm()
     print("All tests passed!")

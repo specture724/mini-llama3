@@ -4,9 +4,9 @@ from llama3 import device
 # 生成旋转矩阵
 def precompute_freqs_cis(dim, seq_len, theta = 10000.0):
     # 计算词向量元素两两分组之后，每组元素对应的旋转角度 theta_i
-    freqs = 1.0 / (theta ** (torch.arange(0, dim, 2)[: (dim // 2)].float() / dim))
+    freqs = 1.0 / (theta ** (torch.arange(0, dim, 2, device=device)[: (dim // 2)].float() / dim))
     # 生成 token 序列索引 t = [0, 1,..., seq_len-1]
-    t = torch.arange(seq_len, device=freqs.device)
+    t = torch.arange(seq_len,dtype=torch.float32, device=freqs.device)
     # freqs.shape = [seq_len, dim // 2] 
     freqs = torch.outer(t, freqs).float().to(device)    # 计算m * \theta
 

@@ -1,14 +1,14 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from param import ModelArgs
+from llama3.param import ModelArgs
 from llama3 import device
 from llama3.RoPE import apply_rotary_emb, precompute_freqs_cis
 import math
 
 class Attention(nn.Module):
     def __init__(self, args: ModelArgs, inference):
-        super.__init__()
+        super().__init__()
         self.args = args
         # Embedding dim
         self.dim = args.dim
@@ -40,9 +40,9 @@ class Attention(nn.Module):
                                     args.dim), 
                                     device=device)
         if inference:
-            self.freq_cis = precompute_freqs_cis(self.head_dim, self.args.max_seq_len*2)
+            self.freq_cis = precompute_freqs_cis(dim=self.head_dim, seq_len=self.args.max_seq_len*2)
         else:
-            self.freq_cis = precompute_freqs_cis(self.head_dim, self.args.max_seq_len)
+            self.freq_cis = precompute_freqs_cis(dim=self.head_dim, seq_len=self.args.max_seq_len)
         
     def forward(self, x:torch.Tensor, start_pos):
         '''
@@ -52,13 +52,16 @@ class Attention(nn.Module):
         xq -> [batch_size, seq_len, n_heads * head_dim] -> [batch_size, seq_len, n_heads, head_dim]
         xk, xv -> [batch_size, seq_len, n_kv_heads * head_dim] -> [batch_size, seq_len, n_kv_heads, head_dim]
         '''
-        batch_size, seq_len = x.shape
+        batch_size, seq_len, _ = x.shape
         mask = None
 
         queries = self.wq(x)
         xk = self.wk(x)
         xv = self.wv(x)
-        
+
+        queries = queries.view(batch_size, seq_len, self.n_heads, self.head_dim)      #xq[bsz,seq_len,n_heads, head_dim]  
+        xk = xk.view(batch_size, seq_len, self.n_kv_heads, self.head_dim)   #xk[bsz,seq_len,n_kv_heads, head_dim]  
+        xv = xv.view(batch_size, seq_len, self.n_kv_heads, self.head_dim)   #xv[bsz,seq_len,n_kv_heads, head_dim]  
         # inference with kv cache
         if self.inference:    
             freq_cis = self.freq_cis[start_pos: start_pos + seq_len]
@@ -84,8 +87,8 @@ class Attention(nn.Module):
             queries, xk = apply_rotary_emb(queries, xk, self.freq_cis)
             keys = self.repeat_kv(xk, self.n_rep)
             values = self.repeat_kv(xv, self.n_rep)
-            mask = torch.full((seq_len, seq_len),float("-inf"),device=self.args.device)  
-            mask = torch.triu(mask, diagonal=1).to(self.args.device)  
+            mask = torch.full((seq_len, seq_len),float("-inf"),device=device)  
+            mask = torch.triu(mask, diagonal=1).to(device)  
 
         queries = queries.transpose(1, 2)
         keys = keys.transpose(1, 2)
@@ -101,7 +104,7 @@ class Attention(nn.Module):
 
         return self.wo(output)
 
-    def repeat_kv(x:torch.Tensor, n_rep:int):
+    def repeat_kv(self, x:torch.Tensor, n_rep:int):
         batch_size, seq_len, n_kv_heads, head_dim = x.shape
         if n_rep == 1:
             return x

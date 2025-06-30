@@ -1,12 +1,12 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from param import ModelArgs
+from llama3.param import ModelArgs
 from llama3 import device
 
-class FeedForward(nn.module):
+class FeedForward(nn.Module):
     def __init__(self, dim, hidden_dim, multiple_of, ffn_dim_multiplier):
-        super.__init__()
+        super().__init__()
         self.dim = dim
 
         hidden_dim = int(2 * hidden_dim/3)

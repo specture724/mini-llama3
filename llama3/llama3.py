@@ -1,21 +1,21 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from param import ModelArgs
+from llama3.param import ModelArgs
 from llama3 import device
-from llama3.transformer import TransformerBlock
+from llama3.transformer_block import TransformerBlock
 from llama3.input_block import InputBlock
 from llama3.RMSNorm import RMSNorm
 
-class Transformer(nn.module):
+class Transformer(nn.Module):
     def __init__(self, args:ModelArgs, inference):
-        super.__init__()
+        super().__init__()
         self.args = args
         self.inference = inference
         self.token_embedding = nn.Embedding(args.vocab_size, args.dim)
 
         self.layers = nn.ModuleList()
-        for layer_id in range(args.n_layers):
+        for _ in range(args.n_layers):
             self.layers.append(TransformerBlock(args, inference))
         self.norm = RMSNorm(args.dim, eps = args.norm_eps)
 

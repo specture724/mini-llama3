@@ -32,12 +32,12 @@ class Attention(nn.Module):
         self.k_cache = torch.zeros((args.max_batch_size, 
                                     args.max_seq_len, 
                                     self.n_kv_heads, 
-                                    args.dim), 
+                                    self.head_dim), 
                                     device=device)
         self.v_cache = torch.zeros((args.max_batch_size, 
                                     args.max_seq_len, 
                                     self.n_kv_heads, 
-                                    args.dim), 
+                                    self.head_dim), 
                                     device=device)
         if inference:
             self.freq_cis = precompute_freqs_cis(dim=self.head_dim, seq_len=self.args.max_seq_len*2)

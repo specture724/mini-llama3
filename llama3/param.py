@@ -5,8 +5,8 @@ from llama3.input_block import input_block
 
 @dataclass  
 class ModelArgs:  
-    dim: int = 512                              # 嵌入维度  
-    n_layers: int = 8                           # 模型解码器块的数量  
+    dim: int = 1024                             # 嵌入维度  
+    n_layers: int = 16                          # 模型解码器块的数量  
     n_heads: int = 8                            # q头数  
     n_kv_heads: int = 4                         # kv头数  
     vocab_size: int = len(input_block.vocab)    # 词汇表长度  

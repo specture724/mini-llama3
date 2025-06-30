@@ -21,6 +21,7 @@ class Attention(nn.Module):
         # The number of Qs for each KV
         self.n_rep = args.n_heads // args.n_kv_heads
 
+        self.inference = inference
         # The weights
         self.wq = nn.Linear(self.dim, self.n_heads * self.head_dim, bias=False, device=device)
         self.wk = nn.Linear(self.dim, self.n_kv_heads * self.head_dim, bias=False, device=device)
@@ -43,7 +44,7 @@ class Attention(nn.Module):
         else:
             self.freq_cis = precompute_freqs_cis(self.head_dim, self.args.max_seq_len)
         
-    def forward(self, x:torch.Tensor, start_pos, inference):
+    def forward(self, x:torch.Tensor, start_pos):
         '''
         x -> [batch_size, seq_len, dim]
         wq -> [dim, n_heads * head_dim]
@@ -59,7 +60,7 @@ class Attention(nn.Module):
         xv = self.wv(x)
         
         # inference with kv cache
-        if inference:    
+        if self.inference:    
             freq_cis = self.freq_cis[start_pos: start_pos + seq_len]
             queries, xk = apply_rotary_emb(queries, xk, freq_cis)
             self.k_cache = self.k_cache.to(queries)
